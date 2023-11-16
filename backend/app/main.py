@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from services.BrowseMusicService.BrowseMusicService import browse_music_service
 
 app = FastAPI(
     title="MeloFlow",
@@ -10,4 +11,5 @@ app = FastAPI(
 
 @app.get("/api/v1/")
 async def root():
-    return {"message": "Hello World"}
+    res = await browse_music_service("softly")
+    return {"res": res}

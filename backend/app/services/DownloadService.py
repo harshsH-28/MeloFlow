@@ -1,11 +1,6 @@
 from yt_dlp import YoutubeDL
 
-# # Set the FFMPEG_PATH environment variable to the directory containing ffmpeg.exe
-# # Path to the directory containing ffmpeg.exe
-# ffmpeg_binaries_path = "../binaries"
-# os.environ["FFMPEG_PATH"] = os.path.abspath(ffmpeg_binaries_path)
-
-URL = "https://www.youtube.com/watch?v=h_k14yNonzA"
+# URL = "https://music.youtube.com/watch?v=U4qD41gPQMU"
 
 
 def download(URL):
@@ -15,14 +10,12 @@ def download(URL):
         'postprocessors': [{  # Extract audio using ffmpeg
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'm4a',
-            # 'audio-quality': 0,  # 0 is the highest quality
         }],
-        'ffmpeg-location': './bin',
-        'audio-quality': 0,  # 0 is the highest quality
+        'ffmpeg_location': "D:\\Documents\\Code\\Projects\\MeloFlow\\backend\\app\\services\\bin",
     }
 
     with YoutubeDL(ydl_opts) as ydl:
         ydl.download(URL)
 
 
-download(URL)
+# download(URL)
