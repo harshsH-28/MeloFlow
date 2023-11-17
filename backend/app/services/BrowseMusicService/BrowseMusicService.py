@@ -11,12 +11,15 @@ async def browse_music_service(query):
     Also searches for your music playlist from spotify
     """
 
-    ytmusic = YTMusic()
-    res = ytmusic.search(query, filter="songs")
-    filtered_res = [item["videoId"]
-                    for item in res if item["resultType"] == "song"]
-    return filtered_res
+    ytmusic = YTMusic("oauth.json")
 
+    try:
+        res = ytmusic.search(query, filter="songs")
+        filtered_res = [item["videoId"]
+                        for item in res if item["resultType"] == "song"]
+        return {"data": filtered_res, "status": 200, "message": "Success"}
+    except Exception as e:
+        return {"data": None, "status": 500, "message": f"Internal Server Error: {str(e)}"}
 
 # Spotify Music Database function
 # def spotify_music_database():
