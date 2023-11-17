@@ -11,5 +11,10 @@ app = FastAPI(
 
 @app.get("/api/v1/")
 async def root():
-    res = await browse_music_service("softly")
+    return {"status": 200, "message": "API is up and running!"}
+
+
+@app.get("/api/v1/search/{query}")
+async def search(query: str):
+    res = await browse_music_service(query)
     return {"res": res}
