@@ -11,7 +11,7 @@ async def browse_music_service(query):
     Also searches for your music playlist from spotify
     """
 
-    ytmusic = YTMusic("oauth.json")
+    ytmusic = YTMusic()
 
     try:
         res = ytmusic.search(query, filter="songs")
