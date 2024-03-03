@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from services.BrowseMusicService.BrowseMusicService import browse_music_service
+from app.services.BrowseMusicService.BrowseMusicService import browse_music_service
+from app.services.DownloadService import download
 
 app = FastAPI(
     title="MeloFlow",
@@ -17,4 +18,6 @@ async def root():
 @app.get("/api/v1/search/{query}")
 async def search(query: str):
     res = await browse_music_service(query)
+    await download(res["data"])
+    # print(res["data"])
     return {"res": res}

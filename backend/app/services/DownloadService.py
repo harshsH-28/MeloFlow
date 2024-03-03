@@ -1,9 +1,9 @@
 from yt_dlp import YoutubeDL
 
-# URL = "https://music.youtube.com/watch?v=U4qD41gPQMU"
+base_url = "https://music.youtube.com/watch?v="
 
 
-def download(URL):
+async def download(code):
     ydl_opts = {
         'format': 'm4a/bestaudio/best',
         # ℹ️ See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
@@ -11,11 +11,9 @@ def download(URL):
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'm4a',
         }],
-        'ffmpeg_location': "D:\\Documents\\Code\\Projects\\MeloFlow\\backend\\app\\services\\bin",
+        # 'ffmpeg_location': "D:\\Documents\\Code\\Projects\\MeloFlow\\backend\\app\\services\\bin",
     }
+    url = f'{base_url}{code}'
 
     with YoutubeDL(ydl_opts) as ydl:
-        ydl.download(URL)
-
-
-# download(URL)
+        await ydl.download(url)

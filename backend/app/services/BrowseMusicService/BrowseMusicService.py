@@ -1,5 +1,5 @@
 from ytmusicapi import YTMusic
-from services.DownloadService import download
+from app.services.DownloadService import download
 
 # Main function
 
@@ -17,7 +17,7 @@ async def browse_music_service(query):
         res = ytmusic.search(query, filter="songs")
         filtered_res = [item["videoId"]
                         for item in res if item["resultType"] == "song"]
-        return {"data": filtered_res, "status": 200, "message": "Success"}
+        return {"data": filtered_res[0], "status": 200, "message": "Success"}
     except Exception as e:
         return {"data": None, "status": 500, "message": f"Internal Server Error: {str(e)}"}
 
