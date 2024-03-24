@@ -11,9 +11,9 @@ async def download(code):
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'm4a',
         }],
-        # 'ffmpeg_location': "D:\\Documents\\Code\\Projects\\MeloFlow\\backend\\app\\services\\bin",
+        'ffmpeg_location': '/bin/ffmpeg/bin/',
     }
     url = f'{base_url}{code}'
 
     with YoutubeDL(ydl_opts) as ydl:
-        await ydl.download(url)
+        ydl.download([url])

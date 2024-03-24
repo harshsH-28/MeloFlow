@@ -9,6 +9,9 @@ COPY . /meloflow
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt
 
+# Copy ffmpeg in /usr/bin
+COPY ./ffmpeg /usr/bin/ffmpeg
+
 # Make port 8080 available to the world outside this container
 EXPOSE 8080
 
