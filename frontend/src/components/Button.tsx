@@ -1,6 +1,12 @@
 import React, { use } from "react";
 
-export default function Button({handleClick}: any, children: any, styles: string){
+interface ButtonProps {
+  handleClick: () => void;
+  styles?: string;
+  children: React.ReactNode;
+}
+
+export default function Button({handleClick, styles, children}: ButtonProps){
   return (
     <button onClick={handleClick} className={styles}>{children}</button>
   );
