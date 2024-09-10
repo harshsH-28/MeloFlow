@@ -2,6 +2,8 @@ from yt_dlp import YoutubeDL
 
 base_url = "https://music.youtube.com/watch?v="
 
+download_path = "songs"
+
 
 async def download(code):
     ydl_opts = {
@@ -12,6 +14,7 @@ async def download(code):
             'preferredcodec': 'm4a',
         }],
         'ffmpeg_location': '/bin/ffmpeg/bin/',
+        'outtmpl': f'{download_path}/%(id)s.%(ext)s'
     }
     url = f'{base_url}{code}'
 
