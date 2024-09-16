@@ -1,16 +1,17 @@
 import os
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header, Request
 from fastapi.responses import StreamingResponse, FileResponse
 from app.services.BrowseMusicService.BrowseMusicService import browse_music_service
 from app.services.DownloadService import download
 from app.services.AudioSegmentation import segment_audio
+from typing import Optional
 
 router = APIRouter(
     prefix = "/api/v1",
     tags = ["API"]
 )
 
-CMAF_CONTENT_DIR = "/backend/cmaf_files"
+CMAF_CONTENT_DIR = "/meloflow/cmaf_files"
 
 @router.get("/")
 async def read_root():
@@ -20,13 +21,13 @@ async def read_root():
 @router.get("/search={query}")
 async def search(query: str):
     res = await browse_music_service(query)
-    await download(res["data"])
+    # await download(res["data"])
     return res
 
 
 @router.get("/stream/{song_id}/manifest.mpd")
 async def server_manifest(song_id: str):
-    segmented_res = await segment_audio(song_id)
+    await segment_audio(song_id)
 
     # if not segmented_res["status"]:
     #     raise HTTPException(status_code=500, detail="Error processing audio file.")
@@ -40,15 +41,19 @@ async def server_manifest(song_id: str):
 
 
 @router.get("/stream/{song_id}/{segment}")
-async def stream_audio(song_id: str, segment: str):
+async def stream_audio(
+    song_id: str, 
+    segment: str, 
+    request: Request, 
+    range: Optional[str] = Header(None)
+):
     segment_file_path = os.path.join(CMAF_CONTENT_DIR, song_id, segment)
 
     if not os.path.exists(segment_file_path):
         raise HTTPException(status_code=404, detail="Music audio segment file not found.")
     
-    # Determin the media type based on the file extension to better server the audio
-
-    if segment.endsWith(".mp4") or segment.endswith(".m4s"):
+    # Determine the media type based on the file extension
+    if segment.endswith(".mp4") or segment.endswith(".m4s"):
         media_type = "video/mp4"
     elif segment.endswith(".mp3"):
         media_type = "audio/mpeg"
@@ -60,14 +65,21 @@ async def stream_audio(song_id: str, segment: str):
         media_type = "application/octet-stream"
 
     file_size = os.path.getsize(segment_file_path)
-
     start = 0
     end = file_size - 1
+
+    if range:
+        start, end = range.replace("bytes=", "").split("-")
+        start = int(start)
+        end = int(end) if end else file_size - 1
 
     chunk_size = end - start + 1
 
     headers = {
-        "Content-Type": media_type
+        "Content-Range": f"bytes {start}-{end}/{file_size}",
+        "Accept-Ranges": "bytes",
+        "Content-Length": str(chunk_size),
+        "Content-Type": media_type,
     }
 
     def stream_file():
@@ -76,7 +88,8 @@ async def stream_audio(song_id: str, segment: str):
             data = file.read(chunk_size)
             yield data
 
-    return StreamingResponse(stream_file(), headers=headers)
+    return StreamingResponse(stream_file(), headers=headers, status_code=206)
+
     
 
     
