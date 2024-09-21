@@ -9,14 +9,22 @@ download_path = "songs"
 
 async def download(code):
     ydl_opts = {
-        'format': 'm4a/bestaudio/best',
+        'format': 'bestaudio/best',
         # ℹ️ See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
         'postprocessors': [{  # Extract audio using ffmpeg
             'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'm4a',
+            'preferredcodec': 'aac',
+        },
+        {
+            'key': 'FFmpegMetadata',
         }],
         'ffmpeg_location': '/bin/ffmpeg/bin/',
-        'outtmpl': f'{download_path}/%(id)s.%(ext)s'
+        'outtmpl': f'{download_path}/%(id)s.%(ext)s',
+        'postprocessor_args': [
+            '-ar', '48000',
+            '-ac', '2',
+            '-b:a', '192k',
+        ],
     }
     url = f'{base_url}{code}'
     
