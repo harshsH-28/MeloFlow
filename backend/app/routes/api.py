@@ -54,7 +54,7 @@ async def stream_audio(
     
     # Determine the media type based on the file extension
     if segment.endswith(".mp4") or segment.endswith(".m4s"):
-        media_type = "video/mp4"
+        media_type = "audio/mp4"
     elif segment.endswith(".mp3"):
         media_type = "audio/mpeg"
     elif segment.endswith(".aac"):
