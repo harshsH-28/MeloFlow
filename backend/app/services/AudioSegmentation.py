@@ -26,12 +26,15 @@ async def segment_audio(song_id: str):
     command = [
         "/meloflow/ffmpeg/bin/ffmpeg",  # Use the full path to ffmpeg
         "-i", input_audio_path,
-        "-c:a", "aac", "-b:a", "128k", 
+        "-c:a", "copy",  # Copy the AAC audio without re-encoding
         "-f", "dash",
-        "-use_template", "1", "-use_timeline", "1",
-        "-init_seg_name", "init.mp4",  # Changed this
-        "-media_seg_name", "chunk_d.m4s",  # Changed this
-        "-min_seg_duration", "5000000",
+        "-use_template", "1",
+        "-use_timeline", "1",
+        "-init_seg_name", "init.mp4",
+        "-media_seg_name", "chunk-$RepresentationID$-$Number%05d$.m4s",
+        "-seg_duration", "4",  # 4-second segments for a good balance of flexibility and efficiency
+        "-adaptation_sets", "id=0,streams=a",
+        "-dash_segment_type", "mp4",
         output_mpd_path
     ]
 
