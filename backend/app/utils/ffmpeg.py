@@ -1,7 +1,12 @@
+"""
+This helper function runs the ffmpeg command in a asynchronous manner
+"""
+
 import asyncio
 import subprocess
 
 async def run_ffmpeg_command(command):
+    """Run an FFmpeg command asynchronously."""
     print(f"Running FFmpeg command: {' '.join(command)}")
     process = await asyncio.create_subprocess_exec(
         *command,
