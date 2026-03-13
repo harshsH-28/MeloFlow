@@ -1,7 +1,7 @@
 import os
-from fastapi import APIRouter, HTTPException, Header, Request
+from fastapi import APIRouter, HTTPException, Header, Request, Query, Response
 from fastapi.responses import StreamingResponse, FileResponse
-from app.services.BrowseMusicService.BrowseMusicService import browse_music_service
+from app.services.BrowseMusicService.BrowseMusicService import browse_music_service, search_songs
 from app.services.DownloadService import download
 from app.services.AudioSegmentation import segment_audio
 from typing import Optional
@@ -23,6 +23,106 @@ async def search(query: str):
     res = await browse_music_service(query)
     # await download(res["data"])
     return res
+
+
+@router.get("/search-songs")
+async def search_songs_endpoint(query: str, limit: int = Query(10, ge=1, le=20), response: Response = None):
+    """
+    Search for songs based on a query string and return multiple results with metadata.
+    
+    Args:
+        query (str): The search query string
+        limit (int): Maximum number of results to return (default: 10, min: 1, max: 20)
+        
+    Returns:
+        dict: Search results with song metadata
+    """
+    try:
+        if not query or len(query.strip()) < 2:
+            return {"data": [], "status": 400, "message": "Search query must be at least 2 characters long"}
+        
+        result = await search_songs(query, limit)
+        
+        # Add CORS headers to ensure browser compatibility
+        if response:
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        
+        return result
+    except Exception as e:
+        print(f"Error in search-songs endpoint: {str(e)}")
+        if response:
+            response.headers["Access-Control-Allow-Origin"] = "*"
+        return {"data": [], "status": 500, "message": f"Server error: {str(e)}"}
+
+
+@router.get("/song/{song_id}")
+async def get_song_details(song_id: str, response: Response = None):
+    """
+    Get details for a specific song by ID.
+    
+    Args:
+        song_id (str): The YouTube video ID of the song
+        
+    Returns:
+        dict: Song details including metadata
+    """
+    from ytmusicapi import YTMusic
+    
+    if not song_id:
+        raise HTTPException(status_code=400, detail="Song ID is required")
+    
+    try:
+        ytmusic = YTMusic()
+        
+        # Try to get more detailed info about the video
+        try:
+            # Get detailed information about the song using the video ID
+            video_info = ytmusic.get_song(song_id)
+            
+            # Extract relevant information
+            song_info = {
+                "id": song_id,
+                "title": video_info.get("title", "Unknown Title"),
+                "artist": video_info.get("artists", [{"name": "Unknown Artist"}])[0]["name"] if video_info.get("artists") else "Unknown Artist",
+                "album": video_info.get("album", {}).get("name", "") if video_info.get("album") else "",
+                "duration": video_info.get("duration", ""),
+                "thumbnail": video_info.get("thumbnails", [])[-1]["url"] if video_info.get("thumbnails") else f"https://img.youtube.com/vi/{song_id}/maxresdefault.jpg",
+                "year": video_info.get("year", ""),
+                "views": video_info.get("views", ""),
+            }
+            
+            # Additional fields if available
+            if video_info.get("videoType"):
+                song_info["videoType"] = video_info.get("videoType")
+                
+            if video_info.get("description"):
+                song_info["description"] = video_info.get("description")
+                
+            # If there are multiple artists, include them all in an artists array
+            if video_info.get("artists") and len(video_info.get("artists", [])) > 1:
+                song_info["artists"] = [artist.get("name", "") for artist in video_info.get("artists", [])]
+                
+        except Exception as e:
+            # Fallback: If detailed info fails, create basic info from the ID
+            song_info = {
+                "id": song_id,
+                "title": "Unknown Title",
+                "artist": "Unknown Artist",
+                "thumbnail": f"https://img.youtube.com/vi/{song_id}/maxresdefault.jpg",
+            }
+        
+        if response:
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+            
+        return {"data": song_info, "status": 200, "message": "Success"}
+    except Exception as e:
+        if response:
+            response.headers["Access-Control-Allow-Origin"] = "*"
+        raise HTTPException(status_code=500, detail=f"Error fetching song details: {str(e)}")
 
 
 @router.get("/stream/{song_id}/manifest.mpd")

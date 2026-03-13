@@ -1,5 +1,5 @@
-version: '3'
-name: 'meloflow'
+version: "3"
+name: "meloflow"
 
 services:
   api:
